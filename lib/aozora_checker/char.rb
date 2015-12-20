@@ -2,8 +2,9 @@ class AozoraChecker
   class Char
     attr_reader :char
 
-    def initialize(char)
+    def initialize(char, comment = nil)
       @char = char
+      @comment = comment
     end
 
     def prefix
@@ -127,7 +128,7 @@ class AozoraChecker
       '<span class="compat78">[78]【'
     end
     def postfix
-      '】（'+J78_HASH[@char] +'）</span>'
+      '】（' + @comment +'）</span>'
     end
   end
 
@@ -145,7 +146,7 @@ class AozoraChecker
       '<span class="gonin">[gonin1]【'
     end
     def postfix
-      '】（'+GONIN1_HASH[@char] +'）</span>'
+      '】（' + @comment +'）</span>'
     end
   end
 
@@ -154,7 +155,7 @@ class AozoraChecker
       '<span class="gonin">[gonin2]【'
     end
     def postfix
-      '】（'+GONIN2_HASH[@char] +'）</span>'
+      '】（' + @comment + '）</span>'
     end
   end
 
@@ -163,7 +164,7 @@ class AozoraChecker
       '<span class="gonin">[gonin3]【'
     end
     def postfix
-      '】（'+GONIN3_HASH[@char] +'）</span>'
+      '】（' + @comment + '）</span>'
     end
   end
 
@@ -177,15 +178,11 @@ class AozoraChecker
   end
 
   class SubsumptionChar < Char
-    def initialize(char, kutenmen)
-      @char = char
-      @kutenmen = kutenmen
-    end
     def prefix
       '<span class="hosetsu">'
     end
     def postfix
-      '→[hosetsu_tekiyo]【' + KUTENMEN_HOSETSU_TEKIYO[@kutenmen] + '】</span>'
+      '→[hosetsu_tekiyo]【' + @comment + '】</span>'
     end
     def len
       @char.bytesize
@@ -194,7 +191,7 @@ class AozoraChecker
 
   class Subsumption78Char < SubsumptionChar
     def postfix
-      '→[78hosetsu_tekiyo]【' + KUTENMEN_78HOSETSU_TEKIYO[@kutenmen] + '】</span>'
+      '→[78hosetsu_tekiyo]【' + @comment + '】</span>'
     end
   end
 
