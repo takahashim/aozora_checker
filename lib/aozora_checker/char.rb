@@ -15,7 +15,7 @@ class AozoraChecker
       ""
     end
 
-    def to_s
+    def to_html
       prefix + @char + postfix
     end
 
@@ -34,7 +34,7 @@ class AozoraChecker
     def postfix
       ' ] </span>'
     end
-    def to_s
+    def to_html
       prefix + sprintf("0x%x", @char.ord) + postfix
     end
   end
@@ -73,7 +73,7 @@ class AozoraChecker
     def postfix
       ' ] </span>'
     end
-    def to_s
+    def to_html
       prefix + sprintf("0x%x", @char.ord) + postfix
     end
   end
