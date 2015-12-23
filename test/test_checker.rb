@@ -34,26 +34,26 @@ class AozoraCheckerTest < Test::Unit::TestCase
     char = @checker.check_hosetsu_tekiyo("※［＃「口＋亞」、第3水準1-15-8、144-上-9］".encode("cp932"), 2)
     assert_equal("<span class=\"hosetsu\">［＃「口＋亞」、第3水準1-15-8、144-上-9］→[78hosetsu_tekiyo]【唖】</span>",
                  char.to_html)
-    assert_equal 55, char.len
+    assert_equal 41, char.len
   end
 
   def test_check_hosetsu_tekiyo_compat
     char = @checker.check_hosetsu_tekiyo("※［＃「にんべん＋曾」、第3水準1-14-41、144-上-9］".encode("cp932"), 2)
     assert_equal("<span class=\"hosetsu\">［＃「にんべん＋曾」、第3水準1-14-41、144-上-9］→[hosetsu_tekiyo]【僧】</span>",
                  char.to_html)
-    assert_equal 65, char.len
+    assert_equal 48, char.len
   end
 
   def test_do_check
     @checker.option[:utf8] = true
     result = @checker.do_check("テスト A　z")
-    expected = [AozoraChecker::KatakanaChar.new("テ"),
-                AozoraChecker::KatakanaChar.new("ス"),
-                AozoraChecker::Gonin1Char.new("ト"),
-                AozoraChecker::SpaceChar.new(" "),
-                AozoraChecker::AsciiChar.new("A"),
-                AozoraChecker::FullWidthSpaceChar.new("　"),
-                AozoraChecker::AsciiChar.new("z")
+    expected = [AozoraChecker::KatakanaChar.new("テ",@checker),
+                AozoraChecker::KatakanaChar.new("ス",@checker),
+                AozoraChecker::Gonin1Char.new("ト",@checker),
+                AozoraChecker::SpaceChar.new(" ",@checker),
+                AozoraChecker::AsciiChar.new("A",@checker),
+                AozoraChecker::FullWidthSpaceChar.new("　",@checker),
+                AozoraChecker::AsciiChar.new("z",@checker)
              ]
     assert_equal expected, result
   end
@@ -61,7 +61,7 @@ class AozoraCheckerTest < Test::Unit::TestCase
   def test_do_check_str
     @checker.option[:utf8] = true
     result = @checker.do_check("テスト A　z").map{|ch| ch.to_html}.join("")
-    expected = "<span class=\"katakana\">テ</span><span class=\"katakana\">ス</span><span class=\"gonin\">[gonin1]【ト】（カタカナ）</span><span class=\"sp\"> </span><span class=\"ascii\">A</span><span class=\"zsp\">【　】（全角スペース）</span><span class=\"ascii\">z</span>"
+    expected = "<span class=\"katakana\">テ</span><span class=\"katakana\">ス</span><span class=\"gonin\">[gonin1]【ト】（カタカナ）</span><span class=\"sp\">【 】（半角スペース）</span><span class=\"ascii\">A</span><span class=\"zsp\">【　】（全角スペース）</span><span class=\"ascii\">z</span>"
     assert_equal expected, result
   end
 end
