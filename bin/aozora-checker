@@ -1,0 +1,23 @@
+#!/usr/bin/env ruby
+
+require "bundler/setup"
+require "aozora_checker"
+require 'optparse'
+
+opt = OptionParser.new("Usage: aozora2html [options] <text file>\n")
+opt.version = AozoraChecker::VERSION
+options = opt.getopts
+
+if ARGV.size != 1
+  $stderr.print opt.banner
+  exit 1
+end
+
+options = nil
+text = File.read(ARGV[0],encoding: "cp932")
+
+checker = AozoraChecker.new(options)
+checked = checker.do_check(text)
+result = checked.map{|ch| ch.to_html}.join("").gsub(%r|</?span[^>]*?>|, "")
+
+print result

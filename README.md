@@ -20,7 +20,11 @@ Or install it yourself as:
 
 ## Usage
 
-TODO:
+### CLI (command line interface)
+
+```
+$ aozora-checker foo.txt
+```
 
 ### Apps
 
