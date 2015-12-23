@@ -22,6 +22,12 @@ Or install it yourself as:
 
 TODO:
 
+### Apps
+
+```
+$ foreman start
+```
+
 ## Contributing
 
 Bug reports and pull requests are welcome on GitHub at https://github.com/takahashim/aozora_checker.

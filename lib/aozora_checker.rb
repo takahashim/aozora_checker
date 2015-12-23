@@ -4,6 +4,24 @@ require "yaml"
 
 class AozoraChecker
 
+  OPTION_LABELS = {
+    :gaiji => "JIS外字をチェックする",
+    :hansp => "半角スペースをチェックする",
+    :hanpar => "半角カッコをチェックする",
+    :zensp => "全角スペースをチェックする",
+    :hosetsu78_tekiyo => "78互換包摂の対象となる不要な外字注記をチェックする",
+    :hosetsu_tekiyo => "包摂の対象となる不要な外字注記をチェックする",
+    :compat78 => "78互換包摂29字をチェックする",
+    :jyogai => "新JIS漢字で包摂規準の適用除外となる104字をチェックする",
+    :gonin1 => "誤認しやすい文字をチェックする(1)",
+    :gonin2 => "誤認しやすい文字をチェックする(2)",
+    :gonin3 => "誤認しやすい文字をチェックする(3)",
+    :simplesp => "半角スペースは赤文字<span class=\"red\">_</span>で、全角スペースは赤文字<span class=\"red\">□</span>で出力する",
+    :pre => "入力した通りに改行して出力する",
+    :bold => "太字も用いて出力する",
+  }
+
+
   ##########
   # 1-15-8,唖　1-15-80〜1-15-89に対しては、チェックを行わない。
   # 1-94-3,顛　1-94-30〜1-94-39に対しては、チェックを行わない。
@@ -28,7 +46,7 @@ class AozoraChecker
 
   def initialize(option = nil)
     if option
-      @option = option
+      @option = option.map{|k,v| [k.to_sym, v] }.to_h
     else
       @option = {
         hosetsu78_tekiyo: true,
@@ -115,11 +133,11 @@ class AozoraChecker
       # print "2($kutenmen)\n";
       # print "2($match)\n";
       if @table["KUTENMEN_78HOSETSU_TEKIYO"][kutenmen]
-        replace = Subsumption78Char.new(match,
+        replace = Subsumption78Char.new(match, self,
                                         @table["KUTENMEN_78HOSETSU_TEKIYO"][kutenmen])
         # print "3($replace)\n";
       elsif @table["KUTENMEN_HOSETSU_TEKIYO"][kutenmen]
-        replace = SubsumptionChar.new(match,
+        replace = SubsumptionChar.new(match, self,
                                       @table["KUTENMEN_HOSETSU_TEKIYO"][kutenmen])
       end
     end
@@ -145,23 +163,23 @@ class AozoraChecker
       c = bytes.getbyte(i)
       ch = c.chr
       if c == 0x0D || c == 0x0A       # 改行
-        result << NormalChar.new(ch)
+        result << NormalChar.new(ch, self)
       elsif 0x00 <= c && c < 0x20     # コントロール文字(invalid)
-        result << ControlChar.new(ch);
+        result << ControlChar.new(ch, self)
       elsif 0x20 <= c && c < 0x7F     # ASCII
         if ch == ' '
-          result << SpaceChar.new(ch)
+          result << SpaceChar.new(ch, self)
         elsif ch == '(' || ch == ')'
-          result << ParChar.new(ch)
+          result << ParChar.new(ch, self)
         else
-          result << AsciiChar.new(ch)
+          result << AsciiChar.new(ch, self)
         end
       elsif 0x7F <= c && c < 0x81     # invalid
-        result << InvalidChar.new(ch)
+        result << InvalidChar.new(ch, self)
       elsif 0xA0 <= c && c < 0xe0     # 半角カナ
-        result << KanaChar.new(ch)
+        result << KanaChar.new(ch, self)
       elsif 0xfd <= c                 # invalid
-        result << InvalidChar.new(ch)
+        result << InvalidChar.new(ch, self)
       else
         i += 1
         d = bytes.getbyte(i)
@@ -176,6 +194,7 @@ class AozoraChecker
                          (@option[:hosetsu_tekiyo] and replace.kind_of?(SubsumptionChar)))
             result << replace
             i += replace.len
+            i += 1
             next
           end
         end
@@ -183,40 +202,40 @@ class AozoraChecker
 
         if @option[:gaiji] and gaiji?(val)
           # JIS外字
-          result << GaijiChar.new(chdh)
+          result << GaijiChar.new(chdh, self)
         ##elsif val == 0x8140
         elsif chdh == FULLWIDTH_SPACE_CHAR
           # 全角スペース
-          result << FullWidthSpaceChar.new(chdh)
+          result << FullWidthSpaceChar.new(chdh, self)
         ##elsif 0x8143 <= val && val < 0x824F
         elsif /[#{SYMBOL_CHAR}]/ =~ chdh
           # 記号
-          result << SymbolChar.new(chdh)
+          result << SymbolChar.new(chdh, self)
         elsif @option[:compat78] and @table["J78"][chdh]
           # 78互換
-          result << Compat78Char.new(chdh, @table["J78"][chdh])
+          result << Compat78Char.new(chdh, self, @table["J78"][chdh])
         elsif @option[:jyogai] and @table["JYOGAI"][chdh]
           # 適用除外
-          result << JyogaiChar.new(chdh, @table["JYOGAI"][chdh])
+          result << JyogaiChar.new(chdh, self, @table["JYOGAI"][chdh])
         elsif @option[:gonin1] and @table["GONIN1"][chdh]
           # 誤認(1)
-          result << Gonin1Char.new(chdh, @table["GONIN1"][chdh])
+          result << Gonin1Char.new(chdh, self, @table["GONIN1"][chdh])
         elsif @option[:gonin2] and @table["GONIN2"][chdh]
           # 誤認(2)
-          result << Gonin2Char.new(chdh, @table["GONIN2"][chdh])
+          result << Gonin2Char.new(chdh, self, @table["GONIN2"][chdh])
         elsif @option[:gonin3] and @table["GONIN3"][chdh]
           # 誤認(3)
-          result << Gonin3Char.new(chdh, @table["GONIN3"][chdh])
+          result << Gonin3Char.new(chdh, self, @table["GONIN3"][chdh])
         elsif /[#{FULLWIDTH_CHAR}]/ =~ chdh
           # 通常
-          result << NormalChar.new(chdh)
+          result << NormalChar.new(chdh, self)
         ##elsif 0x8340 <= val && val < 0x8397
         elsif /[#{FULLWIDTH_KATAKANA_CHAR}]/ =~ chdh
           # カタカナ
-          result << KatakanaChar.new(chdh)
+          result << KatakanaChar.new(chdh, self)
         else
           # 通常
-          result << NormalChar.new(chdh)
+          result << NormalChar.new(chdh, self)
         end
       end
 
@@ -226,6 +245,13 @@ class AozoraChecker
   end
 
   def make_utf8_string(bytes, index, len)
-    bytes.byteslice(index, len).encode("utf-8")
+    str = bytes.byteslice(index, len)
+    if str.encoding != Encoding::UTF_8
+      str.encode!("utf-8", invalid: :replace)
+    end
+  end
+
+  def simple_sp?
+    @option[:simplesp]
   end
 end

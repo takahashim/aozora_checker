@@ -1,0 +1,27 @@
+!!!
+%meta(charset="UTF-8")
+%title= @title
+
+%h1= @title
+
+%form{action:"/check",method:"post"}
+  %p
+    テキストを入力してください。
+  %textarea{name:"text",cols:"60",rows:"10"}
+  %br
+  %input{type:"submit",value:"チェック"}
+  %input{type:"reset",value:"すべてリセット"}
+  %h3 オプション
+  %ul
+    - AozoraChecker::OPTION_LABELS.each do |key,val|
+      %li
+        %input{type:"checkbox",value:"on",checked:"checked",name:"option[#{key}]"}
+        = "[#{key}] #{AozoraChecker::OPTION_LABELS[key.to_sym]}"
+
+  %input{type:"submit",value:"チェック"}
+  %input{type:"reset",value:"すべてリセット"}
+
+%hr
+Copyright (C) 2015 by AozoraHack
+%br
+Original version: Copyright (C) 2000,2001 by <A HREF="http://www.hyuki.com/">結城浩</A>.<br>

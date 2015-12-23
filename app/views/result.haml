@@ -1,0 +1,51 @@
+!!!
+%meta(charset="UTF-8")
+%title= @title
+:sass
+  .sp
+    color: red
+  .zsp
+    color: red
+  .gonin
+    color: red
+  .katakana
+    color: blue
+  .ascii
+    color: blue
+  .hosetsu
+    color: green
+
+- if @options["bold"]
+  :sass
+    .sp, .zsp, .gonin, .katakana, .ascii
+      font-weight: bold
+
+%h1= @title
+
+%hr
+
+%h3 オプション
+%ul
+  - @options.each do |key,val|
+    %li
+      = "[#{key}] #{AozoraChecker::OPTION_LABELS[key.to_sym]}"
+
+%hr
+
+%h3 チェック結果
+
+%p
+  - if @options["pre"]
+    %pre
+      = @result
+  - else
+    = @result
+
+%hr
+  %p
+    %a{href:"/"}
+      もう一度
+%hr
+Copyright (C) 2015 by AozoraHack
+%br
+Original version: Copyright (C) 2000,2001 by <A HREF="http://www.hyuki.com/">結城浩</A>.<br>
