@@ -59,7 +59,7 @@ class AozoraChecker
         gonin3: true,
       }
     end
-    load_table(File.dirname(__FILE__)+"/chartable.json")
+    load_table(File.dirname(__FILE__)+"/../config/chartable.json")
   end
 
   def load_table(path = "./checker.json")
