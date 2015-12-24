@@ -1,6 +1,7 @@
 require "aozora_checker/version"
 require "aozora_checker/char"
 require "yaml"
+require "json"
 
 class AozoraChecker
 
@@ -63,7 +64,14 @@ class AozoraChecker
   end
 
   def load_table(path = "./checker.json")
-    @table = YAML.load_file(path)
+    case File.extname(path)
+    when ".json"
+      @table = JSON.load(File.read(path))
+    when ".yaml", ".yml"
+      @table = YAML.load_file(path)
+    else
+      raise ArgumentError, "invalid file extension: JSON or YAML should be used."
+    end
   end
 
   # JIS外字なら1を返す。引数は文字コード（シフトJIS）。
@@ -132,13 +140,13 @@ class AozoraChecker
       match = $&
       # print "2($kutenmen)\n";
       # print "2($match)\n";
-      if @table["KUTENMEN_78HOSETSU_TEKIYO"][kutenmen]
+      if @table["kutenmen_78hosetsu_tekiyo"][kutenmen]
         replace = Subsumption78Char.new(match, self,
-                                        @table["KUTENMEN_78HOSETSU_TEKIYO"][kutenmen])
+                                        @table["kutenmen_78hosetsu_tekiyo"][kutenmen])
         # print "3($replace)\n";
-      elsif @table["KUTENMEN_HOSETSU_TEKIYO"][kutenmen]
+      elsif @table["kutenmen_hosetsu_tekiyo"][kutenmen]
         replace = SubsumptionChar.new(match, self,
-                                      @table["KUTENMEN_HOSETSU_TEKIYO"][kutenmen])
+                                      @table["kutenmen_hosetsu_tekiyo"][kutenmen])
       end
     end
     replace
@@ -211,21 +219,21 @@ class AozoraChecker
         elsif /[#{SYMBOL_CHAR}]/ =~ chdh
           # 記号
           result << SymbolChar.new(chdh, self)
-        elsif @option[:compat78] and @table["J78"][chdh]
+        elsif @option[:compat78] and @table["j78"][chdh]
           # 78互換
-          result << Compat78Char.new(chdh, self, @table["J78"][chdh])
-        elsif @option[:jyogai] and @table["JYOGAI"][chdh]
+          result << Compat78Char.new(chdh, self, @table["j78"][chdh])
+        elsif @option[:jyogai] and @table["jyogai"][chdh]
           # 適用除外
-          result << JyogaiChar.new(chdh, self, @table["JYOGAI"][chdh])
-        elsif @option[:gonin1] and @table["GONIN1"][chdh]
+          result << JyogaiChar.new(chdh, self, @table["jyogai"][chdh])
+        elsif @option[:gonin1] and @table["gonin1"][chdh]
           # 誤認(1)
-          result << Gonin1Char.new(chdh, self, @table["GONIN1"][chdh])
-        elsif @option[:gonin2] and @table["GONIN2"][chdh]
+          result << Gonin1Char.new(chdh, self, @table["gonin1"][chdh])
+        elsif @option[:gonin2] and @table["gonin2"][chdh]
           # 誤認(2)
-          result << Gonin2Char.new(chdh, self, @table["GONIN2"][chdh])
-        elsif @option[:gonin3] and @table["GONIN3"][chdh]
+          result << Gonin2Char.new(chdh, self, @table["gonin2"][chdh])
+        elsif @option[:gonin3] and @table["gonin3"][chdh]
           # 誤認(3)
-          result << Gonin3Char.new(chdh, self, @table["GONIN3"][chdh])
+          result << Gonin3Char.new(chdh, self, @table["gonin3"][chdh])
         elsif /[#{FULLWIDTH_CHAR}]/ =~ chdh
           # 通常
           result << NormalChar.new(chdh, self)
